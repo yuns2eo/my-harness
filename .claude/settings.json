@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "ask": [
+      "mcp__claude_ai_Slack__slack_send_message",
+      "mcp__claude_ai_Google_Drive__create_file",
+      "mcp__claude_ai_Google_Drive__update_file",
+      "mcp__claude_ai_Google_Drive__trash_file",
+      "mcp__claude_ai_Notion__notion-update-page"
+    ],
+    "deny": [
+      "mcp__claude_ai_Slack__slack_schedule_message"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/hooks/guard.py\"" }
+        ]
+      },
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/hooks/guard.py\"" }
+        ]
+      }
+    ]
+  }
+}

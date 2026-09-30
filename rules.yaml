@@ -1,0 +1,115 @@
+# rules.yaml — 브랜드전 배너 하네스 수치 SSOT
+# 판정 스크립트와 에이전트는 수치를 여기서만 읽는다. 문서와 다르면 이 파일이 이긴다.
+# 사내 값은 "${키}" 자리표시자만 둔다 → 실제 값은 rules.local.yaml (gitignore)
+# 수정은 사람만. (에이전트 편집 금지, docs/r6-roles.md)
+
+version: 1
+
+figma:
+  file_key: "${FIGMA_FILE_KEY}"
+  template_section_name: "${TEMPLATE_SECTION_NAME}"
+  template_section_id: "${TEMPLATE_SECTION_ID}"
+  link_format: "https://www.figma.com/design/{file_key}/?node-id={node_id_dash}"
+
+# 배너 규격 (design.md §2)
+banners:
+  main:    { label: "메인배너",   size: [375, 200] }
+  strip:   { label: "띠배너",     size: [1125, 222] }
+  renewal: { label: "리뉴얼배너", size: [327, 327] }
+export_scale: 3          # 2x 대체 불허 (r5-gates G5)
+
+# 강/고 분리 → 세트 접미사 (★2)
+sets:
+  none: [""]
+  "dog+cat": ["_강", "_고"]
+
+naming:
+  date_regex: "^[0-9]{6}$"                                   # YYMMDD
+  section: "{made}_{job}"
+  frame: "{made}_{job}_{label}{set}"
+  export: "{made}_{job}_{label}{set}.png"                    # @3x 접미사 없음
+
+# 텍스트 (design.md §4, ★1)
+text:
+  font_family: "Pretendard"
+  font_exceptions: ["바 로 가 기"]          # 노드 이름 또는 내용이 일치하면 폰트 판정 제외
+  style_keys: [font_size, font_weight, line_height, letter_spacing]   # 템플릿 값과 같아야 함
+  forbidden_chars: ["·"]
+  allowed_substitutions:                   # ★1 비교 시 허용되는 유일한 치환
+    - { from: "·", to: "&" }
+  main_text_node: "#M_main_text"
+  main_text_max_lines: 3
+  # ★1: Google Sheets Sync 방식. 시트 헤더 이름 = Figma 텍스트 레이어 이름 ("#" 제외).
+  # 레이어 하나 ↔ 같은 이름의 시트 열 하나를 1:1 비교한다. 합치거나 나누지 않는다.
+  sheet_column_prefix: "#"               # 레이어명에서 이 접두사를 뗀 것이 시트 열 이름
+  fields:                                # 배너별로 반드시 있어야 하는 텍스트 레이어
+    main: ["#brand_name", "#benefit", "#M_main_text", "#sub_text"]
+    strip: ["#L_main_text_basic", "#L_main_text_bold"]
+    renewal: ["#R_brand_name", "#R_benefit", "#R_main_text 1", "#R_main_text 2", "#R_sub_text"]
+
+# 브랜드명·혜택 박스 간격 (design.md §5)
+benefit_gap:
+  min: 8
+  max: 10
+  pairs:                                   # [브랜드명 노드, 혜택 노드] (design.md §5 공통)
+    main: ["#brand_name", "#benefit"]
+    renewal: ["#R_brand_name", "#R_benefit"]
+
+# 로고 (★3, design.md §6)
+logo:
+  component_set: "logo"
+  variant_prop: "brand"
+  layer_name_regex: "^logo(_[0-9]+)?$"
+
+# 이미지 (design.md §5~6)
+image:
+  slot_name: "#image"
+  fill_type: "IMAGE"
+  main_slot: { x: 141, y: -34, w: 234, h: 234 }
+
+# 피사체 측정 — 표준편차 방식 (r5-gates §3)
+subject:
+  std_threshold: 12
+  height:
+    main: [170, 175]
+    strip: [185, 190]
+    renewal: [165, 180]
+  strip_x_range: [325, 580]
+  renewal_top_min: 120
+  renewal_center_tolerance: 3             # 하네스 구현 때 정한 값 (가로 중앙 허용 오차, pt)
+  side_margin_ratio: 0.05
+  face_x_max_main: 216                    # 사람 체크리스트 항목 (기계 판정 아님)
+
+seam:
+  max_col_diff: 10
+
+background:
+  forbidden: ["#FFFFFF"]
+
+retry:
+  max: 3              # 같은 복귀 지점 최대 횟수
+  external: 1         # 외부 작업 재시도 (상태 확인 후)
+
+states: [pending, running, waiting_human, pass, fail]
+
+slack:
+  channels: ["${CHANNEL_PRIMARY}", "${CHANNEL_SECONDARY}"]
+  processed_emojis: ["${EMOJI_START}", "${EMOJI_DONE}", ":white_check_mark:"]
+  start_emoji: "${EMOJI_START}"
+  done_emoji: "${EMOJI_DONE}"
+  templates:
+    first: "<@{requester}> 전달드립니다! {link}"
+    revision: "<@{requester}> 수정해두었습니다! {link}"
+  mention_regex: "<@U[A-Z0-9]+(\\|[^>]+)?>"
+
+notion:
+  properties: ["디자인 경로", "진행 상황"]
+
+drive:
+  root_folder_id: "${DRIVE_ROOT_FOLDER_ID}"
+
+rollout:
+  confirm_all_external_first_runs: 3      # 첫 실전 N건은 드라이브·노션도 확인 후 실행
+
+gate_backlog:
+  promote_after: 3

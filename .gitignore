@@ -1,0 +1,12 @@
+# 사내 링크, 상품 이미지, 요청 문구 비공개 — 폴더 구조(.gitkeep)만 공개
+runs/*
+!runs/.gitkeep
+input/images/*
+!input/images/.gitkeep
+
+.DS_Store
+rules.local.yaml
+.venv/
+__pycache__/
+.pytest_cache/
+.harness-maintenance

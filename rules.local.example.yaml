@@ -1,0 +1,12 @@
+# rules.local.example.yaml — 예시값 (공개용)
+# 복사해서 rules.local.yaml 로 만들고 실제 값을 채운다. rules.local.yaml 은 gitignore.
+FIGMA_FILE_KEY: "EXAMPLEFILEKEY"
+CHANNEL_PRIMARY: "#example-design"
+CHANNEL_SECONDARY: "#example-design-sub"
+EMOJI_START: ":example-start:"
+EMOJI_DONE: ":example-done:"
+TEMPLATE_SECTION_ID: "0:1"
+DRIVE_ROOT_FOLDER_ID: "example-folder"
+NOTION_DB_ID: "example-db"
+TEMPLATE_SECTION_NAME: "example-template-section"
+PUBLIC_FORBIDDEN_WORDS: ["example-company"]
